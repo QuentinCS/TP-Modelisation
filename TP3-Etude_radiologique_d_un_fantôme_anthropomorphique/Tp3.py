@@ -559,14 +559,14 @@ for energy in range(0, 4):
     for j in coeur_y:
         for k in coeur_x:            
             dose_coeur_tot[energy] += dose_map_real[energy][j][k]
-            dose_coeur_tot_fluencesortie[energy] += dose_map_2[energy][j][k]
+            dose_coeur_tot_fluencesortie[energy] += dose_map_real_2[energy][j][k]
 
 for energy in range(0, 4):
     dose_moyenne_coeur_tot[energy] = dose_coeur_tot[energy]/(30*50)
     dose_moyenne_coeur_tot_fluencesortie[energy] = dose_coeur_tot_fluencesortie[energy]/(30*50)
     print("La dose moyenne dans le coeur réel à %4.3f MeV est %4.3e Gy" %
           (E_int[energy], dose_moyenne_coeur_tot[energy]))
-    print("La dose moyenne dans le coeur avec une fluence en sortie de 1000 photon mm^-2 à %4.3f MeV est %4.3e Gy" %
+    print("La dose moyenne dans le coeur réel avec une fluence en sortie de 1000 photon mm^-2 à %4.3f MeV est %4.3e Gy" %
           (E_int[energy], dose_moyenne_coeur_tot_fluencesortie[energy]))
 
 print("\n \n")
