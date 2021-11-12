@@ -130,6 +130,66 @@ plt.pause(0.01)
 print("Estimation de pi avec %.0f tirages, pi = %f"%(tirages, 4*surface_cercle/tirages))
 print("-------------------\n \n")
 
+
+
+##########################################################################################
+# Test
+##########################################################################################
+
+cercle = 0
+tirage_1 = 0
+tirage_2 = 0
+nombre_tirages = 1000000
+repetition = 1000
+
+pi_result = np.zeros(repetition)
+pi_error = np.zeros(repetition)
+
+
+for i in range(0, repetition):
+    cercle = 0
+    for j in range(0, nombre_tirages):
+        tirage_1 = random()
+        tirage_2 = random()
+            
+        if est_dans_cercle(tirage_1, tirage_2, 1):
+            cercle += 1
+        
+    pi_result[i] = 4*cercle/nombre_tirages
+
+print("Estimation de pi : %f +- %f"%(pi_result.mean(), pi_result.std()))
+
+pl.figure(figsize=(20, 12))
+plt.hist(pi_result, 100)
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 """
 ###################################################################################
 # Calcul avec un cerle entier
