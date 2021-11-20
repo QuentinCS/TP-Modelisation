@@ -44,7 +44,7 @@ surface_cercle = 0
 Nb_essai_4 = 0
 Nb_essai_6 = 0
 
-tirages = 100000
+tirages = 100
 
 x = [i for i in range(tirages)]
 PI = [np.pi for i in range(tirages)]
@@ -139,7 +139,7 @@ print("-------------------\n \n")
 cercle = 0
 tirage_1 = 0
 tirage_2 = 0
-nombre_tirages = 1000000
+nombre_tirages = 1000
 repetition = 1000
 
 pi_result = np.zeros(repetition)
@@ -162,7 +162,6 @@ print("Estimation de pi : %f +- %f"%(pi_result.mean(), pi_result.std()))
 pl.figure(figsize=(20, 12))
 plt.hist(pi_result, 100)
 plt.show()
-
 
 
 

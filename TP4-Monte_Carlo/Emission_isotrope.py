@@ -10,12 +10,17 @@ Created on Thu Nov 18 14:21:40 2021
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from scipy.optimize import curve_fit
 import numpy as np
 import pylab as pl
+import pandas as pd
 from random import random
 from random import uniform
 import time
 
+
+def fonction(x, A, B):
+    return A*np.exp(-B*x)
 
 start_time = time.time()
 
@@ -25,14 +30,18 @@ start_time = time.time()
 ##################################################################################
 
 
-Nb = 5000
+Nb = 1000
 theta = np.zeros(Nb)
 phi = np.zeros(Nb)
 R = 1
 
+# élément de surface dS = r^2 sin(theta) dtheta dphi
+# phi est tiré de façon uniforme entre 0 et 2*pi
+# theta n'est pas uniforme c'est cos(theta) qui est uniforme
 
 for i in range (Nb):
-    theta[i] = uniform(0, np.pi)
+    #theta[i] = uniform(0, np.pi)
+    theta[i] = np.arccos(uniform(-1, 1))
     phi[i] = uniform(0, 2*np.pi)
 
 
@@ -55,15 +64,16 @@ for i in range(Nb):
     ax.scatter(R*np.sin(theta[i])*np.cos(phi[i]), R*np.sin(theta[i])*np.sin(phi[i]), R*np.cos(theta[i]), marker='x')
 plt.show()
 
+IQR_theta = np.percentile(theta, [75]) - np.percentile(theta, [25])
+IQR_phi = np.percentile(phi, [75]) - np.percentile(phi, [25])
+
 plt.figure(figsize=(10, 10))
-plt.hist2d(theta, phi, bins=(20, 20))
+plt.hist2d(theta, phi, bins=(int(np.pi/(2*IQR_theta/pow(len(theta), (1/3)))), int(2*np.pi/(2*IQR_phi/pow(len(phi), (1/3))))))
 plt.title("Histogramme tirage angles", fontsize=20)
 plt.xlabel('\u03B8 (rad)', fontsize=10)
 plt.ylabel('\u03C6 (rad)', fontsize=10)
-plt.axis([0, np.pi, 0, 2*np.pi])
+#plt.axis([0, np.pi, 0, 2*np.pi])
 plt.colorbar(shrink=0.5)
-
-
 
 
 
@@ -76,7 +86,8 @@ phi_col = np.zeros(Nb)
 R_col = 1
 
 for i in range (Nb):
-    theta_col[i] = uniform(0, (1/18)*np.pi)
+    #theta_col[i] = uniform(0, (1/18)*np.pi)
+    theta_col[i] = np.arccos(uniform(np.cos(np.pi/18), 1))
     phi_col[i] = uniform(0, 2*np.pi)
 
 
@@ -102,23 +113,19 @@ for i in range(Nb):
     ax.scatter(R*np.sin(theta_col[i])*np.cos(phi_col[i]), R*np.sin(theta_col[i])*np.sin(phi_col[i]), R*np.cos(theta_col[i]), marker='x')
 plt.show()
 
+IQR_theta_col = np.percentile(theta, [75]) - np.percentile(theta, [25])
+IQR_phi_col = np.percentile(phi, [75]) - np.percentile(phi, [25])
 
 plt.figure(figsize=(10, 10))
-plt.hist2d(theta_col, phi_col, bins=(20, 20))
+plt.hist2d(theta_col, phi_col, bins=(int(np.pi/(2*IQR_theta_col/pow(len(theta_col), (1/3)))), int(2*np.pi/(2*IQR_phi_col/pow(len(phi_col), (1/3))))))
 plt.title("Histogramme tirage angles", fontsize=20)
 plt.xlabel('\u03B8 (rad)', fontsize=10)
 plt.ylabel('\u03C6 (rad)', fontsize=10)
 plt.axis([0, np.pi, 0, 2*np.pi])
 plt.colorbar(shrink=0.5)
+plt.show()
 
 
 
 
 
-
-
-
-
-
-duree = time.time() - start_time
-print ('\n \nTotal running time : %5.3g s' % duree)
