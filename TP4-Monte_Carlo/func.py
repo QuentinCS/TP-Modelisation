@@ -21,7 +21,10 @@ def Chi2_test(data, fit, err):
     chi2 = 0
     ndf = 0
     for i in range(len(data)):
-        chi2 += pow((data[i] - fit[i])/(err[i]+1), 2)
+        if err[i]==0:
+            chi2 += pow((data[i] - fit[i])/(err[i]+1), 2)
+        else:
+            chi2 += pow((data[i] - fit[i])/(err[i]), 2)
         ndf += 1
     return chi2, ndf-1
 
@@ -72,7 +75,7 @@ class Set_data:
     def plot(self):
         plt.bar(self.binscenters, self.data_entries,
                 width=self.x[1] - self.x[0], color='navy', label=self.energy_name)
-        plt.plot(self.x, self.fit_exp, label='fit : $x_0 e^{-\mu x}$ \n$x_0$ = %4.1f \n$\mu_{%s}$ = %4.3f \n$\chi^{2} /ndf$ = %4.1f/%4.0f' %(self.parameters[0], self.energy_name, self.parameters[1], self.chi2, self.ndf), color='red')
+        plt.plot(self.x, self.fit_exp, label='fit : $x_0 e^{-\mu x}$ \n$x_0$ = %4.1f \n$\mu_{%s}$ = %4.4f \n$\chi^{2} /ndf$ = %4.1f/%4.0f' %(self.parameters[0], self.energy_name, self.parameters[1], self.chi2, self.ndf), color='red')
         plt.xlabel("Distance (cm)")
         plt.ylabel("Count")
         plt.legend(loc=1, prop={'size': 16})

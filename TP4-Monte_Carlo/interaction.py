@@ -14,12 +14,6 @@ import func
     
 start_time = time.time()
 
-#####################################################################################
-# Calcul de la distance d'interaction par la méthode de la fonction de répartition
-#####################################################################################
-
-Nb = 1000
-
 # Extraction des données
 Data = pd.read_excel('eau.xlsx', sheet_name="Feuil1")
 Energy = Data['Energy (MeV)'].values
@@ -34,15 +28,24 @@ muen_int = np.interp(E_int, Energy, En)
 
 print(muatt_int)
 
+#####################################################################################
+# Calcul de la distance d'interaction par la méthode de la fonction de répartition
+#####################################################################################
+t1 = time.time()
+
+print("Calcul avec la méthode d'inversion de la fonction de répartition\n------------------------------------")
+Nb = 100000
+
 distance_int = np.zeros((4, Nb))
 R = np.zeros((4, Nb))
 rho_eau = 1
 
+t1 = time.time()
 for energy in range(0, 4):
     for i in range(Nb):
         R[energy][i] = uniform(0, 1)
         distance_int[energy][i] = -(rho_eau/muatt_int[energy]) * np.log(R[energy][i]) 
-
+t1f = time.time()
 
 data1 = func.Set_data(energy=0.017, energy_name='17 keV')
 data1.set_distance_int(distance_int[0])
@@ -59,7 +62,7 @@ data4.fit()
 
 plt.figure(figsize=(20, 14))
 plt.subplot(2, 2, 1)
-plt.suptitle("Distance d'interaction dans la cuve à \n eau à différentes énergies", fontsize=20)
+plt.suptitle("Distance d'interaction dans la cuve à \n eau à différentes énergies pour la méthode par inversion de la fonction de répartition", fontsize=20)
 data1.plot()
 plt.subplot(2, 2, 2)  
 data2.plot()
@@ -73,6 +76,98 @@ print("Ecart valeur réelle: ", 100*abs(muatt_int[0]-data1.get_mu())/muatt_int[0
 print("Ecart valeur réelle: ", 100*abs(muatt_int[1]-data2.get_mu())/muatt_int[1], "%")
 print("Ecart valeur réelle: ", 100*abs(muatt_int[2]-data3.get_mu())/muatt_int[2], "%")
 print("Ecart valeur réelle: ", 100*abs(muatt_int[3]-data4.get_mu())/muatt_int[3], "%")
+print ('\n \nTemps de calcul : %5.3g s \n \n' % (t1f - t1))
+
+#################################################################################
+# Calcul de la distance d'interaction par la méthode élémentaire
+#################################################################################
+
+print("Calcul avec la méthode élémentaire\n------------------------------------")
+
+Nb = 1000
+distance_int_1 = np.zeros((4, Nb))
+Nb_calcul = np.zeros((4, Nb))
+R_1 = np.zeros((4, Nb))
+rho_eau = 1
+dx = 1
+step = 0.01  # en cm
+
+t2 = time.time()
+for energy in range(0, 4):
+    for i in range(Nb):
+         interaction = False
+         dx = 0
+         while (interaction == False):
+             R_1 = uniform(0, 1)
+             dx += step
+             Nb_calcul[energy][i] += 1
+             #print(dx)
+             if (R_1 <= muatt_int[energy]*step):
+                 distance_int_1[energy][i] = dx
+
+                 interaction = True
+t2f = time.time()        
+
+data_1 = func.Set_data(energy=0.017, energy_name='17 keV')
+data_1.set_distance_int(distance_int_1[0])
+data_1.fit()
+data_2 = func.Set_data(energy=0.064, energy_name='64 keV')
+data_2.set_distance_int(distance_int_1[1])
+data_2.fit()
+data_3 = func.Set_data(energy=0.1, energy_name='100 keV')
+data_3.set_distance_int(distance_int_1[2])
+data_3.fit()
+data_4 = func.Set_data(energy=10, energy_name='10 MeV')
+data_4.set_distance_int(distance_int_1[3])
+data_4.fit()
+
+plt.figure(figsize=(20, 14))
+plt.subplot(2, 2, 1)
+plt.suptitle("Distance d'interaction dans la cuve à \n eau à différentes énergies pour la méthode élémentaire", fontsize=20)
+data_1.plot()
+plt.subplot(2, 2, 2)  
+data_2.plot()
+plt.subplot(2, 2, 3)  
+data_3.plot()
+plt.subplot(2, 2, 4)  
+data_4.plot()
+plt.show()
+
+plt.figure(figsize=(20, 14))
+plt.subplot(2, 2, 1)
+plt.suptitle("Nombre de calcul/pas par photons", fontsize=20)
+plt.hist(Nb_calcul[0], bins=int(np.sqrt(Nb)), label="%s\nmean = %4.1f"%(E_int_name[0], Nb_calcul[0].mean()))
+plt.xlabel("Nb de pas (-)")
+plt.ylabel("Nb d'occurence")
+plt.legend()
+plt.subplot(2, 2, 2)  
+plt.hist(Nb_calcul[1], bins=int(np.sqrt(Nb)), label="%s\nmean = %4.1f"%(E_int_name[1], Nb_calcul[1].mean()))
+plt.xlabel("Nb de pas (-)")
+plt.ylabel("Nb d'occurence")
+plt.legend()
+plt.subplot(2, 2, 3)  
+plt.hist(Nb_calcul[2], bins=int(np.sqrt(Nb)), label="%s\nmean = %4.1f"%(E_int_name[2], Nb_calcul[2].mean()))
+plt.xlabel("Nb de pas (-)")
+plt.ylabel("Nb d'occurence")
+plt.legend()
+plt.subplot(2, 2, 4)  
+plt.hist(Nb_calcul[3], bins=int(np.sqrt(Nb)), label="%s\nmean = %4.1f"%(E_int_name[3], Nb_calcul[3].mean()))
+plt.xlabel("Nb de pas (-)")
+plt.ylabel("Nb d'occurence")
+plt.legend()
+plt.show()
+
+
+print("Nombre de calcul moyen par photons %4.3f +- %4.3f"%(Nb_calcul[0].mean(), Nb_calcul[0].std()))
+
+print("Ecart valeur réelle: ", 100*abs(muatt_int[0]-data_1.get_mu())/muatt_int[0], "%")
+print("Ecart valeur réelle: ", 100*abs(muatt_int[1]-data_2.get_mu())/muatt_int[1], "%")
+print("Ecart valeur réelle: ", 100*abs(muatt_int[2]-data_3.get_mu())/muatt_int[2], "%")
+print("Ecart valeur réelle: ", 100*abs(muatt_int[3]-data_4.get_mu())/muatt_int[3], "%")
+
+print('\n \nTemps de calcul méthode par inversion de la fonction de répartition: %5.3g s' % (t1f - t1))
+print('Temps de calcul méthode élémentaire : %5.3g s' % (t2f - t2))
+print("Rapport des temps de calcul: %4.3d"%((t2f - t2)/(t1f - t1)))
 
 #################################################################################
 # Détermination du type d'interaction 

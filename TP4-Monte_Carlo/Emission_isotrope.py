@@ -18,10 +18,6 @@ from random import random
 from random import uniform
 import time
 
-
-def fonction(x, A, B):
-    return A*np.exp(-B*x)
-
 start_time = time.time()
 
 
@@ -127,5 +123,6 @@ plt.show()
 
 
 
-
+duree = time.time() - start_time
+print ('\n \nTotal running time : %5.3g s' % duree)
 
