@@ -1,0 +1,65 @@
+TITLE  Fantôme anthropomorphique
+       . (the dot prevents editors from removing trailing blanks)
+GSTART >>>>>>>> Beginning of the geometry definition list.
+LAYER  0 5                               [Z_lower and Z_higher] &*
+CENTER 0, 0                              [X_centre and Y_centre] &*
+CYLIND 1 0 37.5                     [Material, R_inner and R_outer] &*
+LAYER  5 15                               [Z_lower and Z_higher] &*
+CYLIND 2 0 7.5                     [Material, R_inner and R_outer] &*
+CYLIND 1 7.5 22.5                     [Material, R_inner and R_outer] &*
+CYLIND 2 22.5 37.5                     [Material, R_inner and R_outer] &*
+LAYER  15 100                               [Z_lower and Z_higher] &*
+CYLIND 3 0 37.5                     [Material, R_inner and R_outer] &*
+LAYER  100 185                               [Z_lower and Z_higher] &*
+CYLIND 3 0 37.5                     [Material, R_inner and R_outer] &*
+LAYER  185 195                               [Z_lower and Z_higher] &*
+CYLIND 2 0 7.5                     [Material, R_inner and R_outer] &*
+CYLIND 1 7.5 22.5                     [Material, R_inner and R_outer] &*
+CYLIND 2 22.5 37.5                     [Material, R_inner and R_outer] &*
+LAYER  195 200                               [Z_lower and Z_higher] &*
+CYLIND 1 0 37.5                     [Material, R_inner and R_outer] &*
+GEND   <<<<<<<< End of the geometry definition list.
+       The labels KL,KC denote the KC-th cylinder in the KL-th layer.
+       .
+       >>>>>>>> Source definition.
+SKPAR  2    [Primary particles: 1=electron, 2=photon, 3=positron]
+SENERG 10e6              [Initial energy (monoenergetic sources only)]
+SRADII 0 5.64                      [Source inner and outer radii]
+SPOSIT 0 0 -10                [Coordinates of the source centre]
+       .
+       >>>>>>>> Material data and simulation parameters.
+                Up to MAXMAT materials; 2 lines for each material.
+MFNAME Soft_tissue.mat               [Material file, up to 20 chars] &*
+MSIMPA 1e4 1e3 1e4 0.1 0.1 1e4 1e4     [EABS(1:3),C1,C2,WCC,WCR] &*
+MFNAME Bone.mat               [Material file, up to 20 chars] &*
+MSIMPA 1e4 1e3 1e4 0.1 0.1 1e4 1e4     [EABS(1:3),C1,C2,WCC,WCR] &*
+MFNAME Lung.mat               [Material file, up to 20 chars] &*
+MSIMPA 1e4 1e3 1e4 0.1 0.1 1e4 1e4     [EABS(1:3),C1,C2,WCC,WCR] &*
+       .
+       >>>>>>>> Counter array dimensions and PDF ranges.
+NBE    0 1e7 100                      [Energy window and no. of bins]
+NBANGL 180 180           [No. of bins for the angles THETA and PHI]
+NBZ    100                         [No. of bins for the Z-coordinate]
+NBR    100                                       [No. of radial bins]
+       .
+       >>>>>>>> Dose and charge distributions.
+DOSE2D 1 1 100 100     [Tally distributions in KL,KC with NZ,NR bins] *
+DOSE2D 2 1 100 100     [Tally distributions in KL,KC with NZ,NR bins] *
+DOSE2D 2 2 100 100     [Tally distributions in KL,KC with NZ,NR bins] *
+DOSE2D 2 3 100 100     [Tally distributions in KL,KC with NZ,NR bins] *
+DOSE2D 3 1 100 100     [Tally distributions in KL,KC with NZ,NR bins] *
+DOSE2D 4 1 100 100     [Tally distributions in KL,KC with NZ,NR bins] *
+DOSE2D 5 1 100 100     [Tally distributions in KL,KC with NZ,NR bins] *
+DOSE2D 5 2 100 100     [Tally distributions in KL,KC with NZ,NR bins] *
+DOSE2D 5 3 100 100     [Tally distributions in KL,KC with NZ,NR bins] *
+DOSE2D 6 1 100 100     [Tally distributions in KL,KC with NZ,NR bins] *
+       .
+       >>>>>>>> Job properties.
+RESUME dump2.dmp               [Resume from this dump file, 20 chars]
+DUMPTO dump2.dmp                  [Generate this dump file, 20 chars]
+DUMPP  60                                 [Dumping period, in sec]
+       .
+NSIMSH 1e9                    [Desired number of simulated showers]
+TIME   600                        [Allotted simulation time, in sec]
+END                                  [Ends the reading of input data]
+....+....1....+....2....+....3....+....4....+....5....+....6....+....7..
