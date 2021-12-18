@@ -10,30 +10,36 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-# Classe pour utilisation et analyse des données à partir des fichier .dat de penelope 
+# Classe pour utilisation et analyse des données à partir des fichier .dat de penelope
 class Data:
-    def __init__(self, file_dose, energy, energy_name, particle=None, milieu=None):
-         
-        # Variables 
+    def __init__(self, file_dose, energy, energy_name, particle=None, milieu=None, divergence=None):
+
+        # Variables
         self.file_dose = file_dose
         self.energy = energy
         self.energy_name = energy_name
         self.particle = particle
         self.milieu = milieu
+        self.divergence = divergence
         self.dose_max = 0
         self.z_max = 0
-        self.surface_source = 0.0564*0.564*np.pi
+        self.Z_bin = 100
+        self.R_bin = 100
 
-        # Initialisation et tri des données 
+
+        # Initialisation et tri des données
         f = open(self.file_dose + '/pencyl-res.dat', 'r')
         self.res = f.read()
         f.closed
         result = self.res.splitlines()
-        self.trash, self.trash, self.trash, self.time, self.trash = result[10].split()
-        self.trash, self.trash, self.trash, self.phi, self.trash = result[11].split()
-        self.trash, self.trash, self.trash, self.trash, self.Nb_particles = result[14].split()
-        
-        # Récupération du rendement en profondeur de dose 
+        self.trash, self.trash, self.trash, self.time, self.trash = result[10].split(
+        )
+        self.trash, self.trash, self.trash, self.phi, self.trash = result[11].split(
+        )
+        self.trash, self.trash, self.trash, self.trash, self.Nb_particles = result[14].split(
+        )
+
+        # Récupération du rendement en profondeur de dose
         f = open(self.file_dose + '/depth-dose.dat', 'r')
         self.data = f.read()
         f.closed
@@ -50,11 +56,29 @@ class Data:
                 self.dose_max = self.dose[i]
                 self.z_max = self.z[i]
         self.dose_max = max(self.dose)
+
+        # Prise en compte de la divergence pour faire la conversion
+        if self.divergence == None:
+            self.surface_source = 5.64*5.64*np.pi
+        else:
+            self.surface_source = np.zeros(len(self.z))
+            for i in range(len(self.z)):
+                self.surface_source[i] = np.pi * \
+                    pow((100+self.z[i])*np.tan(self.divergence*np.pi/180), 2)
         # Conversion de la dose
-        self.dose *= (1e-19*1e3*1e3)*(float(self.Nb_particles))*(1/self.surface_source)
-        self.dose_err *= (1e-19*1e3*1e3)*(float(self.Nb_particles))*(1/self.surface_source)
-        
-        # Récupération des angles d'émission des électrons 
+        if self.divergence == None:
+            self.dose *= (1.6*pow(10, -19)*1e3) * \
+                (float(self.Nb_particles))*(1/self.surface_source)
+            self.dose_err *= (1.6*pow(10, -19)*1e3) * \
+                (float(self.Nb_particles))*(1/self.surface_source)
+        else:
+            for i in range(len(self.z)):
+                self.dose[i] *= (1.6*pow(10, -19)*1e3) * \
+                    (float(self.Nb_particles))*(1/self.surface_source[i])
+                self.dose_err[i] *= (1.6*pow(10, -19)*1e3) * \
+                    (float(self.Nb_particles))*(1/self.surface_source[i])
+
+        # Récupération des angles d'émission des électrons
         f = open(self.file_dose + '/polar-angle.dat', 'r')
         self.res_angle = f.read()
         f.closed
@@ -65,9 +89,10 @@ class Data:
         self.pdf_theta_elec = np.zeros(len(self.angle))
         self.pdf_theta_elec_err = np.zeros(len(self.angle))
         for i in range(len(self.angle)):
-            self.theta[i], self.pdf_theta_elec[i], self.pdf_theta_elec_err[i], self.trash[i], self.trash[i], self.trash[i], self.trash[i] = self.angle[i].split()
-            #self.pdf_theta_elec[i] = self.pdf_theta_elec[i] * float(self.Nb_particles) # à vérifier ?
-        
+            self.theta[i], self.pdf_theta_elec[i], self.pdf_theta_elec_err[i], self.trash[
+                i], self.trash[i], self.trash[i], self.trash[i] = self.angle[i].split()
+            # self.pdf_theta_elec[i] = self.pdf_theta_elec[i] * float(self.Nb_particles) # à vérifier ?
+
         # Récupération des distributions en énergie des électrons transmis
         f = open(self.file_dose + '/energy-up.dat', 'r')
         self.dist_up = f.read()
@@ -75,15 +100,15 @@ class Data:
         self.tr_elec = self.dist_up.splitlines()
         for i in range(7):
             del self.tr_elec[0]
-        self.energy_tr = np.zeros(len(self.tr_elec)) # en eV
+        self.energy_tr = np.zeros(len(self.tr_elec))  # en eV
         self.pdf_tr = np.zeros(len(self.tr_elec))
         self.pdf_tr_err = np.zeros(len(self.tr_elec))
         for i in range(len(self.tr_elec)):
-            self.energy_tr[i], self.pdf_tr[i], self.pdf_tr_err[i], self.trash[i], self.trash[i], self.trash[i], self.trash[i] = self.tr_elec[i].split()
-        self.energy_tr *= 1e-6 # conversion Energy en MeV
-        #self.pdf_tr *= float(self.Nb_particles)     # Je suis pas sur de la conversion ...
-        #self.pdf_tr_err *= float(self.Nb_particles) # Je suis pas sur de la conversion ...
-
+            self.energy_tr[i], self.pdf_tr[i], self.pdf_tr_err[i], self.trash[
+                i], self.trash[i], self.trash[i], self.trash[i] = self.tr_elec[i].split()
+        self.energy_tr *= 1e-6  # conversion Energy en MeV
+        # self.pdf_tr *= float(self.Nb_particles)     # Je suis pas sur de la conversion ...
+        # self.pdf_tr_err *= float(self.Nb_particles) # Je suis pas sur de la conversion ...
 
         # Récupération des distributions en énergie des électrons rétrodiffusé
         f = open(self.file_dose + '/energy-down.dat', 'r')
@@ -92,64 +117,132 @@ class Data:
         self.bck_elec = self.dist_down.splitlines()
         for i in range(7):
             del self.bck_elec[0]
-        self.energy_bck = np.zeros(len(self.bck_elec)) # en eV
+        self.energy_bck = np.zeros(len(self.bck_elec))  # en eV
         self.pdf_bck = np.zeros(len(self.bck_elec))
         self.pdf_bck_err = np.zeros(len(self.bck_elec))
         for i in range(len(self.bck_elec)):
-            self.energy_bck[i], self.pdf_bck[i], self.pdf_bck_err[i], self.trash[i], self.trash[i], self.trash[i], self.trash[i] = self.bck_elec[i].split()
-        self.energy_bck *= 1e-6 # conversion Energy en MeV
-        
-        """ ça fonctionne pas ...
-        # Récupération de la carte de dose
-        f = open(self.file_dose + '/dose-charge-01.dat', 'r')
-        self.data1 = f.read()
-        f.closed
-        self.dose_map = self.data1.splitlines()
-        for i in range(6):
-            del self.dose_map[0]
-        self.radius = np.zeros(len(self.dose_map))
-        self.z_position = np.zeros(len(self.dose_map))
-        self.dose2D = np.zeros(len(self.dose_map))
-        self.dose2D_err = np.zeros(len(self.dose_map))
-        self.trash = np.zeros(len(self.dose_map))
-        for i in range(len(self.dose_map)):
-            self.radius[i], self.z_position[i], self.dose2D[i], self.dose2D_err[i], self.trash[i], self.trash[i] = self.dose_map[i].split()
-        """
-        
-    # Fonctions     
+            self.energy_bck[i], self.pdf_bck[i], self.pdf_bck_err[i], self.trash[
+                i], self.trash[i], self.trash[i], self.trash[i] = self.bck_elec[i].split()
+        self.energy_bck *= 1e-6  # conversion Energy en MeV
+
+
+
+
+
+        # Obtention de la carte de dose en 2D dans la cas d'une cuve (à eau ou autre)
+        if milieu=='cuve':
+            
+            self.line = []
+            self.nK = 5  # Nombre de couches dans le fantôme
+            self.taille = 10100   # Nombre de lignes dans le fichier (en lien direct avec le nombre de bin)
+            self.dose2d_cuve = np.zeros((self.nK, self.R_bin, self.Z_bin)) # Carte de dose
+            self.r_scale = []   # Echelle selon le rayon de la cuve
+            self.z_scale = []   # Echelle en profondeur de la cuve 
+            
+            # Boucle de récupération des données à partir des fichiers pour chaques couches dans la cuve
+            for kc in range(self.nK):
+
+                file = self.file_dose + '/dose-charge-0' + str(kc+1) +'.dat'
+                print(file)
+                f = open(file, 'r')
+                data = f.read()
+                f.closed
+                self.line.append(data.splitlines())
+                for i in range(6):
+                    del self.line[kc][0]
+                self.rayon = np.zeros(len(self.line[kc]))
+                self.profondeur_z = np.zeros(len(self.line[kc]))
+                self.dose_1 = np.zeros(len(self.line[kc]))
+                self.dose_1_err = np.zeros(len(self.line[kc]))
+                trash = np.zeros(len(self.line[kc]))
+                trash2 = np.zeros(len(self.line[kc]))
+                print(len(self.line[kc]))
+                k = 0
+                j = 0 
+                for i in range(len(self.line[kc])):
+                    if len(self.line[kc][i]) > 10:
+                        self.rayon[i], self.profondeur_z[i], self.dose_1[i], self.dose_1_err[i], trash[i], trash2[i] = self.line[kc][i].split()
+                        self.dose2d_cuve[kc][k][j] = self.dose_1[i]
+                        j += 1
+                    else:
+                        k += 1
+                        j = 0
+
+                # Récupération des échelles en r et en z                 
+                if kc == 0:
+                        self.z_scale.append(min(self.profondeur_z))
+                        self.r_scale.append(min(self.rayon))
+                        self.r_scale.append(max(self.rayon))
+                if kc == (self.nK-1):
+                        self.z_scale.append(max(self.profondeur_z))
+
+            # Combinaison des cartes de dose 
+            self.Dose2d = self.dose2d_cuve[0]
+            for kc in range(1, self.nK):
+                self.Dose2d = np.concatenate((self.Dose2d, self.dose2d_cuve[kc]), axis=1)
+
+            # Symétrie cylindrique de la carte de dose 
+            self.Dose2D = matrice_revolution(self.Dose2d)
+
+
+    # Fonctions
     def get_name(self):
         return self.energy_name
-        
+
     def get_milieu(self):
         return self.milieu
-    
+
+    def get_faisceau(self):
+        if self.divergence == None:
+            return 'Parralèle'
+        else:
+            return 'Divergent'
+
     def get_energy(self):
         return self.energy
-        
+
     def get_dose(self):
         return self.dose
-    
+
     def get_dose_err(self):
         return self.dose_err
-    
+
     def get_z(self):
         return self.z
-    
+
     def get_zmax(self):
         return self.z_max
-    
+
     def get_dosemax(self):
-        return self.dose_max   
+        return self.dose_max
 
     def affiche(self):
         print("Nom:", self.energy_name)
-        print("Dose maxe:", self.dose_max,"eV.cm^{2}.g^{-1}")
+        print("Dose maxe:", self.dose_max, "eV.cm^{2}.g^{-1}")
         print("z max:", self.z_max, "cm")
-
 
     def plot(self):
         plt.figure(figsize=(15, 8))
-        plt.plot(self.z, self.dose, label='%s' %(self.energy_name))
+        plt.plot(self.z, self.dose, label='%s' % (self.energy_name))
         plt.xlabel("z (cm)")
         plt.ylabel("Dose $eV.cm^{2}.g^{-1}$")
         plt.legend(loc=1, prop={'size': 16})
+
+###################################################################################
+# Fonctions hors classe 
+###################################################################################
+
+def matrice_revolution(matrice):
+    
+    matrice_miroir = np.zeros((2*matrice.shape[0], matrice.shape[1]))
+    for i in range(matrice.shape[0]):
+        for j in range(matrice.shape[1]): 
+            matrice_miroir[i,j] = matrice[99-i,j]
+    for i in range(matrice.shape[0], matrice_miroir.shape[0]):
+        for j in range(0, matrice.shape[1]):
+            matrice_miroir[i,j] = matrice[i-matrice.shape[0],j-matrice.shape[1]]
+                
+    return matrice_miroir
+
+
+
