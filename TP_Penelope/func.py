@@ -133,7 +133,7 @@ class Data:
             self.R_bin = 100  # Nombre de bin de rayon
             self.taille = 10100   # Nombre de lignes dans le fichier (en lien direct avec le nombre de bin)
             self.dose2d_cuve = np.zeros((self.nK, self.R_bin, self.Z_bin)) # Carte de dose
-            self.r_scale = [0, 100]   # Echelle selon le rayon de la cuve
+            self.r_scale = [-50, 50]   # Echelle selon le rayon de la cuve
             self.z_scale = [0, 100]   # Echelle en profondeur de la cuve 
             
             # Boucle de récupération des données à partir des fichiers pour chaques couches dans la cuve
@@ -187,8 +187,20 @@ class Data:
             self.line = []
             self.nK = 10  # Nombre de couches dans le fantôme
             self.taille = 10100   # Nombre de lignes dans le fichier (en lien direct avec le nombre de bin)
-            self.r_scale = [0, 5]   # Echelle selon le rayon de la cuve
+            self.r_scale = [-2.5, 2.5]   # Echelle selon le rayon de la cuve
             self.z_scale = [0, 20]   # Echelle en profondeur de la cuve 
+            
+            # Définitions des cartes de dose avec les bonnes dimensions
+            self.dose2d_cuve_1 = np.zeros((150, 8)) # Carte de dose couche 1
+            self.dose2d_cuve_2 = np.zeros((30, 16)) # Carte de dose couche 2
+            self.dose2d_cuve_3 = np.zeros((60, 16)) # Carte de dose couche 3
+            self.dose2d_cuve_4 = np.zeros((60, 16)) # Carte de dose couche 4
+            self.dose2d_coeur = np.zeros((60, 80)) # Carte de dose couche coeur
+            self.dose2d_cuve_5 = np.zeros((90, 80)) # Carte de dose couche 5
+            self.dose2d_cuve_6 = np.zeros((150, 192)) # Carte de dose
+            self.dose2d_cuve_7 = np.zeros((30, 16)) # Carte de dose
+            self.dose2d_cuve_8 = np.zeros((60, 16)) # Carte de dose
+            self.dose2d_cuve_9 = np.zeros((60, 16)) # Carte de dose
             
             # Boucle de récupération des données à partir des fichiers pour chaques couches dans la cuve
             for kc in range(self.nK):
@@ -202,40 +214,7 @@ class Data:
                 self.line.append(data.splitlines())
                 for i in range(6):
                     del self.line[kc][0]
-                    
-                if kc == 0:
-                    self.Z_bin = 8
-                    self.R_bin = 150
-                    self.dose2d_cuve_1 = np.zeros((self.R_bin, self.Z_bin)) # Carte de dose
-                if kc == 1:
-                    self.Z_bin = 16
-                    self.R_bin = 30
-                    self.dose2d_cuve_2 = np.zeros((self.R_bin, self.Z_bin)) # Carte de dose
-                if kc == 2 or kc == 3:
-                    self.Z_bin = 16
-                    self.R_bin = 60
-                    self.dose2d_cuve_3 = np.zeros((2, self.R_bin, self.Z_bin)) # Carte de dose
-                if kc == 4:
-                    self.Z_bin = 80
-                    self.R_bin = 60
-                    self.dose2d_cuve_4 = np.zeros((self.R_bin, self.Z_bin)) # Carte de dose
-                if kc == 5:
-                    self.Z_bin = 80
-                    self.R_bin = 90
-                    self.dose2d_cuve_5 = np.zeros((self.R_bin, self.Z_bin)) # Carte de dose
-                if kc == 6:
-                    self.Z_bin = 192
-                    self.R_bin = 150
-                    self.dose2d_cuve_6 = np.zeros((self.R_bin, self.Z_bin)) # Carte de dose
-                if kc == 7:
-                    self.Z_bin = 16
-                    self.R_bin = 30
-                    self.dose2d_cuve_7 = np.zeros((self.R_bin, self.Z_bin)) # Carte de dose
-                if kc == 7 or kc == 8 or kc == 9:
-                    self.Z_bin = 16
-                    self.R_bin = 60
-                    self.dose2d_cuve_8 = np.zeros((2, self.R_bin, self.Z_bin)) # Carte de dose
-                    
+
                 self.rayon = np.zeros(len(self.line[kc]))
                 self.profondeur_z = np.zeros(len(self.line[kc]))
                 self.dose_1 = np.zeros(len(self.line[kc]))
@@ -247,23 +226,27 @@ class Data:
                 for i in range(len(self.line[kc])):
                     if len(self.line[kc][i]) > 10:
                         self.rayon[i], self.profondeur_z[i], self.dose_1[i], self.dose_1_err[i], trash[i], trash2[i] = self.line[kc][i].split()
-                        
+                        self.dose_1[i] *= (1.6*pow(10, -19)*1e3)*(float(self.Nb_particles))*(1/(np.pi*pow((100+self.profondeur_z[i])*np.tan(self.divergence*np.pi/180), 2)))
                         if kc == 0:
                             self.dose2d_cuve_1[k][j] = self.dose_1[i]
                         if kc == 1:
                             self.dose2d_cuve_2[k][j] = self.dose_1[i]
-                        if kc == 2 or kc == 3:
-                            self.dose2d_cuve_3[kc-2][k][j] = self.dose_1[i]
-                        if kc == 4:
+                        if kc == 2:
+                            self.dose2d_cuve_3[k][j] = self.dose_1[i]
+                        if kc == 3:
                             self.dose2d_cuve_4[k][j] = self.dose_1[i]
+                        if kc == 4:
+                            self.dose2d_coeur[k][j] = self.dose_1[i]
                         if kc == 5:
                             self.dose2d_cuve_5[k][j] = self.dose_1[i]
                         if kc == 6:
                             self.dose2d_cuve_6[k][j] = self.dose_1[i]
                         if kc == 7:
                             self.dose2d_cuve_7[k][j] = self.dose_1[i]
-                        if kc == 8 or kc == 9:
-                            self.dose2d_cuve_8[kc-8][k][j] = self.dose_1[i]
+                        if kc == 8:
+                            self.dose2d_cuve_8[k][j] = self.dose_1[i]
+                        if kc == 9:
+                            self.dose2d_cuve_9[k][j] = self.dose_1[i]
         
                         j += 1
                     else:
@@ -279,17 +262,13 @@ class Data:
                         self.z_scale.append(max(self.profondeur_z))
 
             # Combinaison des cartes de dose 
-            self.layer2 = np.concatenate((self.dose2d_cuve_2, self.dose2d_cuve_3[0], self.dose2d_cuve_3[1]), axis=0)
-            self.layer3 = np.concatenate((self.dose2d_cuve_4, self.dose2d_cuve_5), axis=0)
-            self.layer5 = np.concatenate((self.dose2d_cuve_7, self.dose2d_cuve_8[0], self.dose2d_cuve_8[1]), axis=0)
+            self.layer2 = np.concatenate((self.dose2d_cuve_2, self.dose2d_cuve_3, self.dose2d_cuve_4), axis=0)
+            self.layer3 = np.concatenate((self.dose2d_coeur, self.dose2d_cuve_5), axis=0)
+            self.layer5 = np.concatenate((self.dose2d_cuve_7, self.dose2d_cuve_8, self.dose2d_cuve_9), axis=0)
             self.Dose2D = np.concatenate((self.dose2d_cuve_1, self.layer2, self.layer3, self.dose2d_cuve_6, self.layer5), axis=1)
             
             # Révolution cylindrique
             self.Dose2D = matrice_revolution(self.Dose2D, 150)
-
-
-
-
 
 
     # Fonctions
@@ -334,6 +313,21 @@ class Data:
         plt.xlabel("z (cm)")
         plt.ylabel("Dose $eV.cm^{2}.g^{-1}$")
         plt.legend(loc=1, prop={'size': 16})
+    
+    def get_dose_moyenne_coeur(self):
+        return np.mean(self.dose2d_coeur)
+
+    def get_dose_max_coeur(self):
+        return self.dose2d_coeur.max()
+    
+    def get_dose_moyenne(self):
+        return np.mean(self.Dose2D)
+
+    def get_dose_max(self):
+        return self.Dose2D.max()
+    
+    def get_dose_peau(self):
+        return self.Dose2D[int(len(self.Dose2D[0])/2)][0]
 
 ###################################################################################
 # Fonctions hors classe 
@@ -353,3 +347,7 @@ def matrice_revolution(matrice, n_bin):
 
 
 
+    
+    
+    
+    
