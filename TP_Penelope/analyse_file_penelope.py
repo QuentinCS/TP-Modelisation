@@ -436,7 +436,7 @@ plt.imshow(data_fantome[3].Dose2D, extent=[data_fantome[3].z_scale[0], data_fant
 plt.suptitle('Carte de dose dans un fantôme \nanthropomorphique', fontsize=30)
 plt.xlabel("Profondeur z (cm)")
 
-
+ 
 for energy in range(4):
     print("A %s :"%(data_fantome[energy].get_name()))
     print("La dose moyenne au coeur est %.4e Gy"%(data_fantome[energy].get_dose_moyenne_coeur()))

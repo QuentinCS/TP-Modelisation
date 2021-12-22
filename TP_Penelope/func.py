@@ -8,9 +8,12 @@ Created on Sat Nov 27 09:20:31 2021
 
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import interpolate
 
 
 # Classe pour utilisation et analyse des données à partir des fichier .dat de penelope
+# profil de dose, carte de dose, distributions angulaire, ...
+
 class Data:
     def __init__(self, file_dose, energy, energy_name, particle=None, milieu=None, divergence=None):
 
@@ -125,6 +128,7 @@ class Data:
 
 
         # Obtention de la carte de dose en 2D dans la cas d'une cuve (à eau ou autre)
+        # avec 5 cylindres de 50cm de rayon et 20cm de haut 
         if milieu=='cuve':
             
             self.line = []
@@ -133,8 +137,8 @@ class Data:
             self.R_bin = 100  # Nombre de bin de rayon
             self.taille = 10100   # Nombre de lignes dans le fichier (en lien direct avec le nombre de bin)
             self.dose2d_cuve = np.zeros((self.nK, self.R_bin, self.Z_bin)) # Carte de dose
-            self.r_scale = [-50, 50]   # Echelle selon le rayon de la cuve
-            self.z_scale = [0, 100]   # Echelle en profondeur de la cuve 
+            self.r_scale = []   # Echelle selon le rayon de la cuve
+            self.z_scale = []   # Echelle en profondeur de la cuve 
             
             # Boucle de récupération des données à partir des fichiers pour chaques couches dans la cuve
             for kc in range(self.nK):
@@ -166,7 +170,7 @@ class Data:
                 # Récupération des échelles en r et en z                 
                 if kc == 0:
                         self.z_scale.append(min(self.profondeur_z))
-                        self.r_scale.append(min(self.rayon))
+                        self.r_scale.append(-max(self.rayon))
                         self.r_scale.append(max(self.rayon))
                 if kc == (self.nK-1):
                         self.z_scale.append(max(self.profondeur_z))
@@ -182,13 +186,15 @@ class Data:
 
 
         # Obtention de la carte de dose en 2D dans le cas d'un fantôme anthropomorphique
+        # récupération de la carte de dose avec 10 couches (il manque la couche de tissus en 
+        # sortie du fantôme)
         if milieu=='fantome':
             
             self.line = []
             self.nK = 10  # Nombre de couches dans le fantôme
             self.taille = 10100   # Nombre de lignes dans le fichier (en lien direct avec le nombre de bin)
-            self.r_scale = [-2.5, 2.5]   # Echelle selon le rayon de la cuve
-            self.z_scale = [0, 20]   # Echelle en profondeur de la cuve 
+            self.r_scale = []   # Echelle selon le rayon de la cuve
+            self.z_scale = []   # Echelle en profondeur de la cuve 
             
             # Définitions des cartes de dose avec les bonnes dimensions
             self.dose2d_cuve_1 = np.zeros((150, 8)) # Carte de dose couche 1
@@ -197,10 +203,10 @@ class Data:
             self.dose2d_cuve_4 = np.zeros((60, 16)) # Carte de dose couche 4
             self.dose2d_coeur = np.zeros((60, 80)) # Carte de dose couche coeur
             self.dose2d_cuve_5 = np.zeros((90, 80)) # Carte de dose couche 5
-            self.dose2d_cuve_6 = np.zeros((150, 192)) # Carte de dose
-            self.dose2d_cuve_7 = np.zeros((30, 16)) # Carte de dose
-            self.dose2d_cuve_8 = np.zeros((60, 16)) # Carte de dose
-            self.dose2d_cuve_9 = np.zeros((60, 16)) # Carte de dose
+            self.dose2d_cuve_6 = np.zeros((150, 192)) # Carte de dose 6
+            self.dose2d_cuve_7 = np.zeros((30, 16)) # Carte de dose 7
+            self.dose2d_cuve_8 = np.zeros((60, 16)) # Carte de dose 8 
+            self.dose2d_cuve_9 = np.zeros((60, 16)) # Carte de dose 9
             
             # Boucle de récupération des données à partir des fichiers pour chaques couches dans la cuve
             for kc in range(self.nK):
@@ -256,11 +262,11 @@ class Data:
                 # Récupération des échelles en r et en z                 
                 if kc == 0:
                         self.z_scale.append(min(self.profondeur_z))
-                        self.r_scale.append(min(self.rayon))
+                        self.r_scale.append(-max(self.rayon))
                         self.r_scale.append(max(self.rayon))
                 if kc == (self.nK-1):
                         self.z_scale.append(max(self.profondeur_z))
-
+ 
             # Combinaison des cartes de dose 
             self.layer2 = np.concatenate((self.dose2d_cuve_2, self.dose2d_cuve_3, self.dose2d_cuve_4), axis=0)
             self.layer3 = np.concatenate((self.dose2d_coeur, self.dose2d_cuve_5), axis=0)
@@ -333,6 +339,7 @@ class Data:
 # Fonctions hors classe 
 ###################################################################################
 
+#Fonction de symétrie de matrice selon l'axe x, pour révolution cylindrique 
 def matrice_revolution(matrice, n_bin):
     
     matrice_miroir = np.zeros((2*matrice.shape[0], matrice.shape[1]))
@@ -345,9 +352,78 @@ def matrice_revolution(matrice, n_bin):
                 
     return matrice_miroir
 
+# Interpolation quadratique 
+def Interp (energy, mu, E_i):
+    #inter_mu = interpolate.interp1d(energy, mu, kind='quadratic') # interpolation quadratique 
+    inter_mu = interpolate.interp1d(energy, mu, kind='slinear') # interpolation linéaire
+
+    mu_int = np.zeros(4)
+
+    for i in range(0, 4):    
+        mu_int[i] = inter_mu(E_i[i])
+
+    return mu_int
 
 
+# Fonction création du fantôme anthropomorphique pour les calculs analytiques
+def matrice(mu_soft, mu_lung, mu_bone):
     
+    Matrice = np.zeros((75, 200))
     
-    
+    for y in range(0, 75):
+        for x in range(0, 200):   
+            if y <= 15:    
+                if x <= 5 or x >= 195 :
+                    Matrice[y][x] = mu_soft
+                if (5<x and x<=15) or ( 185<x and x<=195):
+                    Matrice[y][x] = mu_bone
+                if (15< x and x<=185):
+                    Matrice[y][x] = mu_lung
+                
+            if  15 < y and y <= 30:
+                if x <=15 or x >= 185 :
+                    Matrice[y][x] = mu_soft
+                if 15<=x and x<=185:
+                    Matrice[y][x] = mu_lung
+
+            if 30 < y and y <= 36 :
+                if x <= 5 or x >= 195:
+                    Matrice[y][x] = mu_soft
+                if (5<x and x<=15) or (185<x and x<=195):
+                    Matrice[y][x] = mu_bone
+                if 15<x and x<=185:
+                    Matrice[y][x] = mu_lung
+                 
+            if 36 < y and y <= 45 :
+                if (x <= 5 or x >= 195) or (15<=x and x<65):
+                    Matrice[y][x] = mu_soft
+                if (5<x and x<=15) or (185<x and x<=195): 
+                    Matrice[y][x] = mu_bone
+                if 65<=x and x<=185:
+                    Matrice[y][x] = mu_lung
+                
+            if 45 < y and y <= 60 :
+                if (x <= 15 or x >= 185) or ( 15<x and x<=65):
+                    Matrice[y][x] = mu_soft
+                if 65<=x and x<=185:
+                    Matrice[y][x] = mu_lung
+
+            if 60 < y and y <= 66:
+                if (x<=5 or x>=195) or ( 15<=x and x<=65):
+                    Matrice[y][x] = mu_soft
+                if (5<x and x<=15) or (185<x and x<=195):
+                    Matrice[y][x] = mu_bone
+                if 65<=x and x<=185:
+                    Matrice[y][x] = mu_lung
+
+            if y > 66:
+                if x <= 5 or x >= 195 :
+                    Matrice[y][x] = mu_soft
+                if (5<x and x<=15) or ( 185<x and x<=195):
+                    Matrice[y][x] = mu_bone
+                if 15<x and x<=185:
+                    Matrice[y][x] = mu_lung
+                
+    return Matrice
+
     
