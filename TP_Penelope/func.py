@@ -9,21 +9,30 @@ Created on Sat Nov 27 09:20:31 2021
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import interpolate
+import sys
 
 
 # Classe pour utilisation et analyse des données à partir des fichier .dat de penelope
 # profil de dose, carte de dose, distributions angulaire, ...
 
-class Data:
-    def __init__(self, file_dose, energy, energy_name, particle=None, milieu=None, divergence=None):
+# 2 milieux possibles :
+#   - Cuve à eau avec 5 cylindres et NZ = 100 bin, NR = 100 bin => 'cuve'
+#   - Fantôme anthropomorphique avec 10 cylindres, voir définitions des cartes de dose => 'fantome'
 
+class Data:
+    def __init__(self, file_dose, energy, energy_name, particle=None, milieu=None):
+        
+        # Vérification que le fantôme soit correct 
+        if milieu!= 'cuve' and milieu!= 'fantome':
+            print('Erreur: milieu inconnu')
+            sys.exit() 
+        
         # Variables
         self.file_dose = file_dose
         self.energy = energy
         self.energy_name = energy_name
         self.particle = particle
         self.milieu = milieu
-        self.divergence = divergence
         self.dose_max = 0
         self.z_max = 0
 
@@ -38,6 +47,23 @@ class Data:
         )
         self.trash, self.trash, self.trash, self.trash, self.Nb_particles = result[14].split(
         )
+        
+        # Récupération des caractéristiques de la source: taille et divergence
+        f = open(self.file_dose + '/pencyl.dat', 'r')
+        self.res = f.read()
+        f.closed
+        result = self.res.splitlines()
+        if milieu=='cuve':
+            self.trash, self.trash, self.trash, self.taille_source, self.trash = result[50].split()
+            self.trash, self.trash, self.trash, self.trash, self.divergence, self.trash = result[58].split()
+            self.divergence = float(self.divergence)
+        if milieu=='fantome':
+            self.trash, self.trash, self.trash, self.taille_source, self.trash = result[75].split()
+            self.trash, self.trash, self.trash, self.trash, self.divergence, self.trash = result[83].split()
+            self.divergence = float(self.divergence)
+
+        self.taille_source = float(self.taille_source)
+
 
         # Récupération du rendement en profondeur de dose
         f = open(self.file_dose + '/depth-dose.dat', 'r')
@@ -48,35 +74,41 @@ class Data:
             del self.line[0]
         self.z = np.zeros(len(self.line))
         self.dose = np.zeros(len(self.line))
+        self.dose_phi = np.zeros(len(self.line))
         self.dose_err = np.zeros(len(self.line))
+        self.dose_phi_err = np.zeros(len(self.line))
         self.trash = np.zeros(len(self.line))
         for i in range(len(self.line)):
-            self.z[i], self.dose[i], self.dose_err[i], self.trash[i] = self.line[i].split()
-            if (self.dose[i] >= self.dose_max):
-                self.dose_max = self.dose[i]
+            self.z[i], self.dose_phi[i], self.dose_phi_err[i], self.trash[i] = self.line[i].split()
+            if (self.dose_phi[i] >= self.dose_max):
+                self.dose_max = self.dose_phi[i]
                 self.z_max = self.z[i]
-        self.dose_max = max(self.dose)
+        self.dose_max = max(self.dose_phi)
 
         # Prise en compte de la divergence pour faire la conversion
-        if self.divergence == None:
-            self.surface_source = 5.64*5.64*np.pi
+        if self.divergence == 0:
+            self.surface_source =self.taille_source*self.taille_source*np.pi
         else:
             self.surface_source = np.zeros(len(self.z))
             for i in range(len(self.z)):
-                self.surface_source[i] = np.pi * \
-                    pow((100+self.z[i])*np.tan(self.divergence*np.pi/180), 2)
+                self.surface_source[i] = np.pi*pow((100+self.z[i])*np.tan(float(self.divergence)*np.pi/180), 2)
         # Conversion de la dose
-        if self.divergence == None:
-            self.dose *= (1.6*pow(10, -19)*1e3) * \
-                (float(self.Nb_particles))*(1/self.surface_source)
-            self.dose_err *= (1.6*pow(10, -19)*1e3) * \
-                (float(self.Nb_particles))*(1/self.surface_source)
+        if self.divergence == 0:
+            for i in range(len(self.z)):
+                self.dose[i] = self.dose_phi[i]*(1.6*pow(10, -19)*1e3) * \
+                    (float(self.Nb_particles))*(1/self.surface_source)
+                self.dose_err[i] = self.dose_phi_err[i]*(1.6*pow(10, -19)*1e3) * \
+                        (float(self.Nb_particles))*(1/self.surface_source)
         else:
             for i in range(len(self.z)):
-                self.dose[i] *= (1.6*pow(10, -19)*1e3) * \
+                self.dose[i] = self.dose_phi[i]*(1.6*pow(10, -19)*1e3) * \
                     (float(self.Nb_particles))*(1/self.surface_source[i])
-                self.dose_err[i] *= (1.6*pow(10, -19)*1e3) * \
+                self.dose_err[i] = self.dose_phi_err[i]*(1.6*pow(10, -19)*1e3) * \
                     (float(self.Nb_particles))*(1/self.surface_source[i])
+        
+        self.dose_norm_e = np.zeros(len(self.z))
+        for i in range(len(self.z)):
+            self.dose_norm_e[i] = self.dose[i]/self.dose[0]
 
         # Récupération des angles d'émission des électrons
         f = open(self.file_dose + '/polar-angle.dat', 'r')
@@ -88,9 +120,10 @@ class Data:
         self.theta = np.zeros(len(self.angle))
         self.pdf_theta_elec = np.zeros(len(self.angle))
         self.pdf_theta_elec_err = np.zeros(len(self.angle))
+        self.pdf_theta_pos = np.zeros(len(self.angle))
+        self.pdf_theta_pos_err = np.zeros(len(self.angle))
         for i in range(len(self.angle)):
-            self.theta[i], self.pdf_theta_elec[i], self.pdf_theta_elec_err[i], self.trash[
-                i], self.trash[i], self.trash[i], self.trash[i] = self.angle[i].split()
+            self.theta[i], self.pdf_theta_elec[i], self.pdf_theta_elec_err[i], self.pdf_theta_pos[i], self.pdf_theta_pos_err[i], self.trash[i], self.trash[i] = self.angle[i].split()
             # self.pdf_theta_elec[i] = self.pdf_theta_elec[i] * float(self.Nb_particles) # à vérifier ?
 
         # Récupération des distributions en énergie des électrons transmis
@@ -232,7 +265,10 @@ class Data:
                 for i in range(len(self.line[kc])):
                     if len(self.line[kc][i]) > 10:
                         self.rayon[i], self.profondeur_z[i], self.dose_1[i], self.dose_1_err[i], trash[i], trash2[i] = self.line[kc][i].split()
-                        self.dose_1[i] *= (1.6*pow(10, -19)*1e3)*(float(self.Nb_particles))*(1/(np.pi*pow((100+self.profondeur_z[i])*np.tan(self.divergence*np.pi/180), 2)))
+                        if self.divergence == 0:
+                            self.dose_1[i] *= (1.6*pow(10, -19)*1e3)*(float(self.Nb_particles))*(1/self.surface_source)
+                        else:
+                            self.dose_1[i] *= (1.6*pow(10, -19)*1e3)*(float(self.Nb_particles))*(1/(np.pi*pow((100+self.profondeur_z[i])*np.tan(float(self.divergence)*np.pi/180), 2)))
                         if kc == 0:
                             self.dose2d_cuve_1[k][j] = self.dose_1[i]
                         if kc == 1:
@@ -301,6 +337,9 @@ class Data:
 
     def get_z(self):
         return self.z
+    
+    def get_time(self):
+        return float(self.time)
 
     def get_zmax(self):
         return self.z_max
@@ -414,7 +453,7 @@ def matrice(mu_soft, mu_lung, mu_bone):
                 if (5<x and x<=15) or (185<x and x<=195):
                     Matrice[y][x] = mu_bone
                 if 65<=x and x<=185:
-                    Matrice[y][x] = mu_lung
+                    Matrice[y][x] = mu_lung 
 
             if y > 66:
                 if x <= 5 or x >= 195 :
@@ -426,4 +465,8 @@ def matrice(mu_soft, mu_lung, mu_bone):
                 
     return Matrice
 
+def func_fit(x, k, a):
+    y = k*pow(x, a)
+    #y = k*(np.log(a*x)) 
+    return y
     

@@ -25,19 +25,12 @@ start_time = time.time()
 
 # Extraction des données  
 data1 = []
-data1.append(func.Data('cuve_eau/parallele_1metre/17_keV', 17, '17 keV', milieu='water'))
-data1.append(func.Data('cuve_eau/parallele_1metre/64_keV', 64, '64 keV', milieu='water'))
-data1.append(func.Data('cuve_eau/parallele_1metre/100_keV', 100, '100 keV', milieu='water'))
-data1.append(func.Data('cuve_eau/parallele_1metre/10_MeV', 1e3, '10 MeV', milieu='water'))
+data1.append(func.Data('cuve_eau/parallele_5.64/17_keV', 17, '17 keV', milieu='cuve'))
+data1.append(func.Data('cuve_eau/parallele_5.64/64_keV', 64, '64 keV', milieu='cuve'))
+data1.append(func.Data('cuve_eau/parallele_5.64/100_keV', 100, '100 keV', milieu='cuve'))
+data1.append(func.Data('cuve_eau/parallele_5.64/10_MeV', 1e3, '10 MeV', milieu='cuve'))
 
-energy = [] 
-z_max = []
 
-for i in range(len(data1)):
-    energy.append(data1[i].get_energy()) 
-    z_max.append(data1[i].get_zmax())
-
-    
 plt.figure(figsize=(30,15))
 for i in range(len(data1)):
     plt.subplot(2, 2, i+1)
@@ -55,16 +48,6 @@ plt.suptitle("Rendement en profondeur pour un faisceau de photon dans une cuve �
 plt.xlabel("z (cm)", fontsize=20)
 plt.ylabel("Dose (Gy)", fontsize=20)
 plt.legend(prop={'size': 20})
-plt.show()
-"""
-plt.figure(figsize=(10,6))
-for i in range(len(data1)):
-    plt.scatter(energy, z_max, label=data1[i].get_name(), color='navy')
-plt.title("Distance de mise à l'équilibre électronique \n pour un faisceau parallèle", fontsize=20)
-plt.xlabel("Energie (eV)", fontsize=15)
-plt.ylabel("$z_{max} (cm)$", fontsize=15)
-plt.legend(prop={'size': 10})
-plt.xscale('log')
 plt.show()
 
 plt.figure(figsize=(30,15))
@@ -99,7 +82,7 @@ for i in range(len(data1)):
     plt.xscale('log')
     plt.legend(prop={'size': 20})
 plt.legend()
-"""
+
 
 
 ###################################################################################
@@ -108,10 +91,10 @@ plt.legend()
 
 # Extraction des données
 data2 = []
-data2.append(func.Data('cuve_eau/divergent/17_keV', 17, '17 keV', milieu='water', divergence=11.3))
-data2.append(func.Data('cuve_eau/divergent/64_keV', 64, '64 keV', milieu='water', divergence=11.3))
-data2.append(func.Data('cuve_eau/divergent/100_keV', 100, '100 keV', milieu='water', divergence=11.3))
-data2.append(func.Data('cuve_eau/divergent/10_MeV', 1e3, '10 MeV', milieu='water', divergence=11.3))
+data2.append(func.Data('cuve_eau/divergent/17_keV', 17, '17 keV', milieu='cuve'))
+data2.append(func.Data('cuve_eau/divergent/64_keV', 64, '64 keV', milieu='cuve'))
+data2.append(func.Data('cuve_eau/divergent/100_keV', 100, '100 keV', milieu='cuve'))
+data2.append(func.Data('cuve_eau/divergent/10_MeV', 1e3, '10 MeV', milieu='cuve'))
 
 energy = []
 z_max = []
@@ -187,22 +170,22 @@ plt.legend()
 
 
 ###################################################################################
-# Fantôme anthropomorphe 
+# Fantôme anthropomorphe avec faisceau parallèle
 ###################################################################################
 
 # Extraction des données
 data3 = []
-data3.append(func.Data('fantome_humain/coeur/17_keV', 17, '17 keV', milieu='fantome1'))
-data3.append(func.Data('fantome_humain/coeur/64_keV', 64, '64 keV', milieu='fantome1'))
-data3.append(func.Data('fantome_humain/coeur/100_keV', 100, '100 keV', milieu='fantome1'))
-data3.append(func.Data('fantome_humain/coeur/10_MeV', 1e3, '10 MeV', milieu='fantome1'))
+data3.append(func.Data('fantome_humain/parallele/17_keV', 17, '17 keV', milieu='fantome'))
+data3.append(func.Data('fantome_humain/parallele/64_keV', 64, '64 keV', milieu='fantome'))
+data3.append(func.Data('fantome_humain/parallele/100_keV', 100, '100 keV', milieu='fantome'))
+data3.append(func.Data('fantome_humain/parallele/10_MeV', 1e3, '10 MeV', milieu='fantome'))
 
     
 plt.figure(figsize=(30,15))
 for i in range(len(data3)):
     plt.subplot(2, 2, i+1)
     plt.errorbar(data3[i].get_z(), data3[i].get_dose(), yerr=data3[i].get_dose_err(), label='%s' %(data3[i].get_name()), color='navy' )
-    plt.suptitle("Rendement en profondeur pour un faisceau de photon dans un fantôme \nanthropomorphique", fontsize=30)
+    #plt.suptitle("Rendement en profondeur pour un faisceau de photon dans un fantôme \nanthropomorphique avec faisceau parallèle", fontsize=30)
     plt.xlabel("z (cm)", fontsize=20)
     plt.ylabel("Dose (Gy)", fontsize=20)
     plt.legend(prop={'size': 20})
@@ -211,29 +194,32 @@ plt.show()
 plt.figure(figsize=(30,15))
 for i in range(len(data3)):
     plt.errorbar(data3[i].get_z(), data3[i].get_dose(), yerr=data3[i].get_dose_err(), label='%s' %(data3[i].get_name()))
-plt.suptitle("Rendement en profondeur pour un faisceau de photon dans un fantôme \nanthropomorphique", fontsize=30)
+plt.suptitle("Rendement en profondeur pour un faisceau de photon dans un fantôme \nanthropomorphique avec faisceau parallèle", fontsize=30)
 plt.xlabel("z (cm)", fontsize=20)
 plt.ylabel("Dose (Gy)", fontsize=20)
 plt.legend(prop={'size': 20})
 plt.show()
 
-"""
+
 plt.figure(figsize=(30,15))
 for i in range(len(data3)):
     plt.subplot(2, 2, i+1)
     plt.errorbar(data3[i].theta, data3[i].pdf_theta_elec, yerr=data3[i].pdf_theta_elec_err, label='%s'%(data3[i].get_name()), color='navy')
-    plt.suptitle('Distribution angulaire des électrons', fontsize=15)
+    #plt.suptitle('Distribution angulaire des électrons fantôme', fontsize=15)
     plt.xlabel('$\Theta$ (degré)', fontsize=15)
     plt.ylabel('PDF ($sr^{-1}.particle^{-1}$)', fontsize=15)
-    plt.xscale('log')
+    plt.ylim(0, 1.2*max(data3[i].pdf_theta_elec))
+    #if i == 3 or i == 2 or i ==1:
+    #    plt.ylim(0, 1.2*max(data3[i].pdf_theta_elec))
+    #plt.xscale('log')
     plt.legend(prop={'size': 20})
 plt.legend()
 
 plt.figure(figsize=(30,15))
-for i in range(len(data)):
+for i in range(len(data3)):
     plt.subplot(2, 2, i+1)
     plt.errorbar(data3[i].energy_tr, data3[i].pdf_tr, yerr=data3[i].pdf_tr_err, label='%s'%(data3[i].get_name()), color='navy')
-    plt.suptitle('Distribution en énergie des électrons transmis', fontsize=15)
+    plt.suptitle('Distribution en énergie des électrons transmis fantôme', fontsize=15)
     plt.xlabel('E (MeV)', fontsize=15)
     plt.ylabel('PDF ($eV^{-1}.particle^{-1}$)', fontsize=15)
     plt.xscale('log')
@@ -244,13 +230,13 @@ plt.figure(figsize=(30,15))
 for i in range(len(data3)):
     plt.subplot(2, 2, i+1)
     plt.errorbar(data3[i].energy_bck, data3[i].pdf_bck, yerr=data3[i].pdf_bck_err, label='%s'%(data3[i].get_name()), color='navy')
-    plt.suptitle('Distribution en énergie des électrons rétrodiffusés', fontsize=15)
+    plt.suptitle('Distribution en énergie des électrons rétrodiffusés fantôme', fontsize=15)
     plt.xlabel('E (MeV)', fontsize=15)
     plt.ylabel('PDF ($eV^{-1}.particle^{-1}$)', fontsize=15)
     plt.xscale('log')
     plt.legend(prop={'size': 20})
 plt.legend()
-"""
+
 
 ###################################################################################
 # Fantôme anthropomorphe avec faisceau divergent
@@ -258,17 +244,17 @@ plt.legend()
 
 # Extraction des données
 data4 = []
-data4.append(func.Data('fantome_humain/coeur_divergent_3/17_keV', 17, '17 keV', milieu='fantome', divergence=11.3))
-data4.append(func.Data('fantome_humain/coeur_divergent_3/64_keV', 64, '64 keV', milieu='fantome', divergence=11.3))
-data4.append(func.Data('fantome_humain/coeur_divergent_3/100_keV', 100, '100 keV', milieu='fantome', divergence=11.3))
-data4.append(func.Data('fantome_humain/coeur_divergent_3/10_MeV', 1e3, '10 MeV', milieu='fantome', divergence=11.3))
+data4.append(func.Data('fantome_humain/divergent_3/17_keV', 17, '17 keV', milieu='fantome'))
+data4.append(func.Data('fantome_humain/divergent_3/64_keV', 64, '64 keV', milieu='fantome'))
+data4.append(func.Data('fantome_humain/divergent_3/100_keV', 100, '100 keV', milieu='fantome'))
+data4.append(func.Data('fantome_humain/divergent_3/10_MeV', 1e3, '10 MeV', milieu='fantome'))
 
     
 plt.figure(figsize=(30,15))
 for i in range(len(data4)):
     plt.subplot(2, 2, i+1)
     plt.errorbar(data4[i].get_z(), data4[i].get_dose(), yerr=data4[i].get_dose_err(), label='%s' %(data4[i].get_name()), color='navy' )
-    plt.suptitle("Rendement en profondeur pour un faisceau de photon dans un fantôme \nanthropomorphique faisceau divergent", fontsize=30)
+    #plt.suptitle("Rendement en profondeur pour un faisceau de photon dans un fantôme \nanthropomorphique faisceau divergent", fontsize=30)
     plt.xlabel("z (cm)", fontsize=20)
     plt.ylabel("Dose (Gy)", fontsize=20)
     plt.legend(prop={'size': 20})
@@ -329,7 +315,7 @@ plt.figure(figsize=(30,15))
 for i in range(len(data4)):
     plt.subplot(2, 2, i+1)
     plt.errorbar(data4[i].get_z(), data4[i].get_dose(), yerr=data4[i].get_dose_err(), label='%s' %(data4[i].get_faisceau()))
-    plt.errorbar(data3[i].get_z(), data3[i].get_dose(), yerr=data3[i].get_dose_err(), label='%s' %(data3[i].get_faisceau()))
+#    plt.errorbar(data3[i].get_z(), data3[i].get_dose(), yerr=data3[i].get_dose_err(), label='%s' %(data3[i].get_faisceau()))
     plt.suptitle("Comparaison rendement en profondeur pour un faisceau de photon dans un fantôme \nanthropomorphique", fontsize=30)
     plt.xlabel("z (cm)", fontsize=20)
     #plt.yscale('log')
@@ -348,10 +334,10 @@ plt.show()
 
 # Traçage des cartes de dose dans la cuve à eau 
 data_cuve = [] 
-data_cuve.append(func.Data('cuve_eau/parallele_1metre/17_keV', 17, '17 keV', milieu='cuve'))
-data_cuve.append(func.Data('cuve_eau/parallele_1metre/64_keV', 64, '64 keV', milieu='cuve'))
-data_cuve.append(func.Data('cuve_eau/parallele_1metre/100_keV', 100, '100 keV', milieu='cuve'))
-data_cuve.append(func.Data('cuve_eau/parallele_1metre/10_MeV', 1e3, '10 MeV', milieu='cuve'))
+data_cuve.append(func.Data('cuve_eau/parallele_5.64/17_keV', 17, '17 keV', milieu='cuve'))
+data_cuve.append(func.Data('cuve_eau/parallele_5.64/64_keV', 64, '64 keV', milieu='cuve'))
+data_cuve.append(func.Data('cuve_eau/parallele_5.64/100_keV', 100, '100 keV', milieu='cuve'))
+data_cuve.append(func.Data('cuve_eau/parallele_5.64/10_MeV', 1e3, '10 MeV', milieu='cuve'))
 
 plt.figure(figsize=(20, 15))
 plt.subplot(2, 2, 1)
@@ -378,10 +364,10 @@ plt.imshow(data_cuve[3].Dose2D, extent=[data_cuve[3].z_scale[0], data_cuve[3].z_
 
 # Cuve à eau divergent
 data_cuve_div = [] 
-data_cuve_div.append(func.Data('cuve_eau/divergent/17_keV', 17, '17 keV', milieu='cuve', divergence=11.3))
-data_cuve_div.append(func.Data('cuve_eau/divergent/64_keV', 64, '64 keV', milieu='cuve', divergence=11.3))
-data_cuve_div.append(func.Data('cuve_eau/divergent/100_keV', 100, '100 keV', milieu='cuve', divergence=11.3))
-data_cuve_div.append(func.Data('cuve_eau/divergent/10_MeV', 1e3, '10 MeV', milieu='cuve', divergence=11.3))
+data_cuve_div.append(func.Data('cuve_eau/divergent/17_keV', 17, '17 keV', milieu='cuve'))
+data_cuve_div.append(func.Data('cuve_eau/divergent/64_keV', 64, '64 keV', milieu='cuve'))
+data_cuve_div.append(func.Data('cuve_eau/divergent/100_keV', 100, '100 keV', milieu='cuve'))
+data_cuve_div.append(func.Data('cuve_eau/divergent/10_MeV', 1e3, '10 MeV', milieu='cuve'))
 
 plt.figure(figsize=(20, 15))
 plt.subplot(2, 2, 1)
@@ -410,10 +396,10 @@ plt.imshow(data_cuve_div[3].Dose2D, extent=[data_cuve_div[3].z_scale[0], data_cu
 
 #Traçage des cartes de dose dans le fantôme 
 data_fantome = [] 
-data_fantome.append(func.Data('fantome_humain/coeur_divergent_3/17_keV', 17e3, '17 keV', milieu='fantome', divergence=11.3))
-data_fantome.append(func.Data('fantome_humain/coeur_divergent_3/64_keV', 64e3, '64 keV', milieu='fantome', divergence=11.3))
-data_fantome.append(func.Data('fantome_humain/coeur_divergent_3/100_keV', 100e3, '100 keV', milieu='fantome', divergence=11.3))
-data_fantome.append(func.Data('fantome_humain/coeur_divergent_3/10_MeV', 10e6, '10 MeV', milieu='fantome', divergence=11.3))
+data_fantome.append(func.Data('fantome_humain/parallele/17_keV', 17e3, '17 keV', milieu='fantome'))
+data_fantome.append(func.Data('fantome_humain/parallele/64_keV', 64e3, '64 keV', milieu='fantome'))
+data_fantome.append(func.Data('fantome_humain/parallele/100_keV', 100e3, '100 keV', milieu='fantome'))
+data_fantome.append(func.Data('fantome_humain/parallele/10_MeV', 10e6, '10 MeV', milieu='fantome'))
 
 plt.figure(figsize=(20, 15))
 plt.subplot(4, 1, 1)
@@ -424,7 +410,7 @@ plt.subplot(4, 1, 2)
 plt.title('64 keV')
 plt.ylabel("Rayon r (cm)")
 plt.imshow(data_fantome[1].Dose2D, extent=[data_fantome[1].z_scale[0], data_fantome[1].z_scale[1], data_fantome[1].r_scale[0], data_fantome[1].r_scale[1]])
-plt.subplot(4, 1, 3)
+plt.subplot(4, 1, 3) 
 plt.title('100 keV')
 plt.ylabel("Rayon r (cm)")
 plt.imshow(data_fantome[2].Dose2D, extent=[data_fantome[2].z_scale[0], data_fantome[2].z_scale[1], data_fantome[2].r_scale[0], data_fantome[2].r_scale[1]])
@@ -449,13 +435,13 @@ for energy in range(4):
 
 
 
-
+"""
 #Traçage des cartes de dose dans le fantôme 
 data_fantome2 = [] 
-data_fantome2.append(func.Data('fantome_humain/coeur_divergent_4/17_keV', 17e3, '17 keV', milieu='fantome', divergence=11.3))
-data_fantome2.append(func.Data('fantome_humain/coeur_divergent_4/64_keV', 64e3, '64 keV', milieu='fantome', divergence=11.3))
-data_fantome2.append(func.Data('fantome_humain/coeur_divergent_4/100_keV', 100e3, '100 keV', milieu='fantome', divergence=11.3))
-data_fantome2.append(func.Data('fantome_humain/coeur_divergent_4/10_MeV', 10e6, '10 MeV', milieu='fantome', divergence=11.3))
+data_fantome2.append(func.Data('fantome_humain/divergent_4/17_keV', 17e3, '17 keV', milieu='fantome'))
+data_fantome2.append(func.Data('fantome_humain/divergent_4/64_keV', 64e3, '64 keV', milieu='fantome'))
+data_fantome2.append(func.Data('fantome_humain/divergent_4/100_keV', 100e3, '100 keV', milieu='fantome'))
+data_fantome2.append(func.Data('fantome_humain/divergent_4/10_MeV', 10e6, '10 MeV', milieu='fantome'))
 
 plt.figure(figsize=(20, 15))
 plt.subplot(4, 1, 1)
@@ -477,15 +463,15 @@ plt.imshow(data_fantome2[3].Dose2D, extent=[data_fantome2[3].z_scale[0], data_fa
 #plt.colorbar(shrink=0.5) 
 plt.suptitle('Carte de dose dans un fantôme \nanthropomorphique test paramètres \n(c1 =0.1, c2 =0.1)', fontsize=30)
 plt.xlabel("Profondeur z (cm)")
-
+"""
 
 
 #Traçage des cartes de dose dans le fantôme 
 data_fantome3 = [] 
-data_fantome3.append(func.Data('fantome_humain/coeur_divergent_5/17_keV', 17e3, '17 keV', milieu='fantome', divergence=11.3))
-data_fantome3.append(func.Data('fantome_humain/coeur_divergent_5/64_keV', 64e3, '64 keV', milieu='fantome', divergence=11.3))
-data_fantome3.append(func.Data('fantome_humain/coeur_divergent_5/100_keV', 100e3, '100 keV', milieu='fantome', divergence=11.3))
-data_fantome3.append(func.Data('fantome_humain/coeur_divergent_5/10_MeV', 10e6, '10 MeV', milieu='fantome', divergence=11.3))
+data_fantome3.append(func.Data('fantome_humain/parallele_1/17_keV', 17e3, '17 keV', milieu='fantome'))
+data_fantome3.append(func.Data('fantome_humain/parallele_1/64_keV', 64e3, '64 keV', milieu='fantome'))
+data_fantome3.append(func.Data('fantome_humain/parallele_1/100_keV', 100e3, '100 keV', milieu='fantome'))
+data_fantome3.append(func.Data('fantome_humain/parallele_1/10_MeV', 10e6, '10 MeV', milieu='fantome'))
 
 plt.figure(figsize=(20, 15))
 plt.subplot(4, 1, 1)
@@ -505,16 +491,16 @@ plt.title('10 MeV')
 plt.ylabel("Rayon r (cm)")
 plt.imshow(data_fantome3[3].Dose2D, extent=[data_fantome3[3].z_scale[0], data_fantome3[3].z_scale[1], data_fantome3[3].r_scale[0], data_fantome3[3].r_scale[1]])
 #plt.colorbar(shrink=0.5) 
-plt.suptitle('Carte de dose dans un fantôme \nanthropomorphique test paramètres \n(c1 =0.05, c2 =0.05)', fontsize=30)
+#plt.suptitle('Carte de dose dans un fantôme \nanthropomorphique avec faisceau parallèle de 1cm', fontsize=30)
 plt.xlabel("Profondeur z (cm)")
  
 
 
 data_fantome4 = [] 
-data_fantome4.append(func.Data('fantome_humain/coeur_parallele/17_keV', 17e3, '17 keV', milieu='fantome', divergence=0.1))
-data_fantome4.append(func.Data('fantome_humain/coeur_parallele/64_keV', 64e3, '64 keV', milieu='fantome', divergence=0.1))
-data_fantome4.append(func.Data('fantome_humain/coeur_parallele/100_keV', 100e3, '100 keV', milieu='fantome', divergence=0.1))
-data_fantome4.append(func.Data('fantome_humain/coeur_parallele/10_MeV', 10e6, '10 MeV', milieu='fantome', divergence=0.1))
+data_fantome4.append(func.Data('fantome_humain/parallele/17_keV', 17e3, '17 keV', milieu='fantome'))
+data_fantome4.append(func.Data('fantome_humain/parallele/64_keV', 64e3, '64 keV', milieu='fantome'))
+data_fantome4.append(func.Data('fantome_humain/parallele/100_keV', 100e3, '100 keV', milieu='fantome'))
+data_fantome4.append(func.Data('fantome_humain/parallele/10_MeV', 10e6, '10 MeV', milieu='fantome'))
 plt.figure(figsize=(20, 15))
 plt.subplot(4, 1, 1)
 plt.title('17 keV')
@@ -532,7 +518,7 @@ plt.subplot(4, 1, 4)
 plt.title('10 MeV')
 plt.ylabel("Rayon r (cm)")
 plt.imshow(data_fantome4[3].Dose2D, extent=[data_fantome4[3].z_scale[0], data_fantome4[3].z_scale[1], data_fantome4[3].r_scale[0], data_fantome4[3].r_scale[1]])
-
+#plt.suptitle('Carte de dose dans un fantôme \nanthropomorphique avec faisceau parallèle de 3.75cm', fontsize=30)
 
 
 
